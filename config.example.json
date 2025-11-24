@@ -1,0 +1,22 @@
+{
+  "game_url": "https://example.com/match3-game",
+  "browser": "chrome",
+  "headless": false,
+  "debug": true,
+  "max_moves": 1000,
+  "grid_size": {
+    "rows": 9,
+    "cols": 9
+  },
+  "board_coordinates": {
+    "enabled": false,
+    "x1": 300,
+    "y1": 100,
+    "x2": 900,
+    "y2": 700
+  },
+  "delays": {
+    "move_delay": 0.5,
+    "animation_wait": 2.0
+  }
+}
