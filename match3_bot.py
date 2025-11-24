@@ -19,10 +19,11 @@ from game_logic import GameBoard
 class Match3Bot:
     """Main bot class that coordinates all components"""
 
-    def __init__(self, url: str, headless: bool = False, debug: bool = False):
+    def __init__(self, url: str, headless: bool = False, debug: bool = False, browser: str = "auto"):
         self.url = url
         self.headless = headless
         self.debug = debug
+        self.browser_type = browser
 
         self.browser = BrowserController(headless=headless)
         self.detector = BoardDetector()
@@ -34,7 +35,7 @@ class Match3Bot:
     def start(self):
         """Start the browser and navigate to the game"""
         print("Starting browser...")
-        self.browser.start_browser()
+        self.browser.start_browser(self.browser_type)
 
         print(f"Navigating to {self.url}")
         self.browser.navigate_to_game(self.url)
@@ -208,6 +209,9 @@ class Match3Bot:
 def main():
     parser = argparse.ArgumentParser(description="Match-3 Game Bot")
     parser.add_argument("url", help="URL of the match-3 game")
+    parser.add_argument("--browser", default="auto",
+                       choices=["auto", "edge", "chrome", "firefox"],
+                       help="Browser to use (default: auto-detect)")
     parser.add_argument("--headless", action="store_true", help="Run browser in headless mode")
     parser.add_argument("--debug", action="store_true", help="Enable debug mode (save screenshots)")
     parser.add_argument("--max-moves", type=int, help="Maximum number of moves to make")
@@ -233,7 +237,7 @@ def main():
         }
 
     # Create and run the bot
-    bot = Match3Bot(args.url, headless=args.headless, debug=args.debug)
+    bot = Match3Bot(args.url, headless=args.headless, debug=args.debug, browser=args.browser)
     bot.run(max_moves=args.max_moves, manual_coords=manual_coords)
 
 

@@ -4,6 +4,8 @@ An automated bot that plays match-3 games (like Candy Crush, Bejeweled, etc.) in
 
 ## Features
 
+- **Automatic browser detection**: Auto-detects and uses Edge, Chrome, or Firefox
+- **Auto-driver management**: Automatically downloads and manages browser drivers (no manual setup!)
 - **Automatic board detection**: Uses computer vision to detect and analyze the game board
 - **Intelligent move selection**: Finds all valid moves and prioritizes those that create the most matches
 - **Browser automation**: Controls the browser using Selenium to execute moves
@@ -13,8 +15,8 @@ An automated bot that plays match-3 games (like Candy Crush, Bejeweled, etc.) in
 ## Requirements
 
 - Python 3.7+
-- Chrome or Firefox browser
-- ChromeDriver or GeckoDriver (matching your browser version)
+- One of: **Microsoft Edge** (recommended for Windows), Chrome, or Firefox
+- **No manual driver installation needed!** The bot automatically downloads the correct driver
 
 ## Installation
 
@@ -29,10 +31,7 @@ cd match_3_quidco
 pip install -r requirements.txt
 ```
 
-3. Install browser driver:
-   - **Chrome**: Download [ChromeDriver](https://chromedriver.chromium.org/) matching your Chrome version
-   - **Firefox**: Download [GeckoDriver](https://github.com/mozilla/geckodriver/releases)
-   - Place the driver in your PATH or in the project directory
+That's it! The bot will automatically download the correct browser driver when you first run it.
 
 ## Usage
 
@@ -53,6 +52,8 @@ Arguments:
   URL                    URL of the match-3 game
 
 Options:
+  --browser {auto,edge,chrome,firefox}
+                        Browser to use (default: auto-detect)
   --headless            Run browser in headless mode (no GUI)
   --debug               Enable debug mode (save board detection screenshots)
   --max-moves N         Maximum number of moves to make (default: 1000)
@@ -63,6 +64,16 @@ Options:
 ```
 
 ### Examples
+
+**Basic run (auto-detects browser):**
+```bash
+python match3_bot.py "https://blackfriday.quidco.com/"
+```
+
+**Explicitly use Edge browser:**
+```bash
+python match3_bot.py "https://blackfriday.quidco.com/" --browser edge
+```
 
 **Run with debug mode:**
 ```bash
@@ -86,12 +97,14 @@ python match3_bot.py "https://example.com/game" --rows 8 --cols 8
 
 ## How It Works
 
-1. **Browser Control**: The bot opens the game in a Selenium-controlled browser
-2. **Board Detection**: Takes a screenshot and uses computer vision to locate the game board
-3. **Gem Recognition**: Analyzes each cell in the grid and identifies gem types using color histograms
-4. **Move Finding**: Uses match-3 logic to find all valid moves (swaps that create 3+ matches)
-5. **Move Execution**: Simulates drag-and-drop to swap gems
-6. **Repeat**: Waits for animations and continues playing
+1. **Browser Detection**: Auto-detects your system's default browser (Edge on Windows, Chrome on Mac, Firefox on Linux)
+2. **Driver Management**: Automatically downloads the correct browser driver (no manual setup!)
+3. **Browser Control**: Opens the game in a Selenium-controlled browser
+4. **Board Detection**: Takes a screenshot and uses computer vision to locate the game board
+5. **Gem Recognition**: Analyzes each cell in the grid and identifies gem types using color histograms
+6. **Move Finding**: Uses match-3 logic to find all valid moves (swaps that create 3+ matches)
+7. **Move Execution**: Simulates drag-and-drop to swap gems
+8. **Repeat**: Waits for animations and continues playing
 
 ## Architecture
 
@@ -127,13 +140,14 @@ If swaps aren't working:
 - Check if there are any overlays or popups blocking the board
 - Try adjusting the wait times in browser_controller.py
 
-### Browser Driver Issues
+### Browser Issues
 
-If you get driver errors:
+The bot automatically manages browser drivers, but if you encounter issues:
 
-- Make sure ChromeDriver/GeckoDriver matches your browser version
-- Add the driver to your system PATH
-- Or place it in the project directory
+- **Browser not found**: Install Edge, Chrome, or Firefox
+- **Driver download fails**: Check your internet connection and try again
+- **Specific browser not working**: Use `--browser <name>` to try a different browser
+- **Permission errors on Windows**: Run terminal as Administrator (first time only)
 
 ## Configuration
 

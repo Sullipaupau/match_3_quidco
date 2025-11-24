@@ -8,10 +8,17 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
+from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.firefox import GeckoDriverManager
+from webdriver_manager.microsoft import EdgeChromiumDriverManager
+from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.firefox.service import Service as FirefoxService
+from selenium.webdriver.edge.service import Service as EdgeService
 import time
 import numpy as np
 from PIL import Image
 import io
+import platform
 
 
 class BrowserController:
@@ -22,29 +29,98 @@ class BrowserController:
         self.headless = headless
         self.game_element = None
 
-    def start_browser(self, browser_type: str = "chrome"):
-        """Start the browser with appropriate options"""
-        if browser_type.lower() == "chrome":
-            options = webdriver.ChromeOptions()
-            if self.headless:
-                options.add_argument("--headless")
-            options.add_argument("--no-sandbox")
-            options.add_argument("--disable-dev-shm-usage")
-            options.add_argument("--disable-blink-features=AutomationControlled")
-            options.add_experimental_option("excludeSwitches", ["enable-automation"])
-            options.add_experimental_option("useAutomationExtension", False)
+    def detect_browser(self) -> str:
+        """
+        Detect the default browser on the system
+        Returns 'edge', 'chrome', or 'firefox'
+        """
+        system = platform.system().lower()
 
-            self.driver = webdriver.Chrome(options=options)
-        elif browser_type.lower() == "firefox":
-            options = webdriver.FirefoxOptions()
-            if self.headless:
-                options.add_argument("--headless")
-
-            self.driver = webdriver.Firefox(options=options)
+        # On Windows, Edge is very common
+        if system == "windows":
+            return "edge"
+        # On macOS, Chrome is common
+        elif system == "darwin":
+            return "chrome"
+        # On Linux, Firefox is common
         else:
-            raise ValueError(f"Unsupported browser type: {browser_type}")
+            return "firefox"
 
-        self.driver.maximize_window()
+    def start_browser(self, browser_type: str = "auto"):
+        """
+        Start the browser with appropriate options
+        Automatically downloads and manages browser drivers
+
+        Args:
+            browser_type: "auto", "edge", "chrome", or "firefox"
+        """
+        # Auto-detect browser if requested
+        if browser_type.lower() == "auto":
+            browser_type = self.detect_browser()
+            print(f"Auto-detected browser: {browser_type}")
+
+        try:
+            if browser_type.lower() == "edge":
+                options = webdriver.EdgeOptions()
+                if self.headless:
+                    options.add_argument("--headless")
+                options.add_argument("--no-sandbox")
+                options.add_argument("--disable-dev-shm-usage")
+                options.add_argument("--disable-blink-features=AutomationControlled")
+                options.add_experimental_option("excludeSwitches", ["enable-automation"])
+                options.add_experimental_option("useAutomationExtension", False)
+
+                # Auto-download and install EdgeDriver
+                service = EdgeService(EdgeChromiumDriverManager().install())
+                self.driver = webdriver.Edge(service=service, options=options)
+
+            elif browser_type.lower() == "chrome":
+                options = webdriver.ChromeOptions()
+                if self.headless:
+                    options.add_argument("--headless")
+                options.add_argument("--no-sandbox")
+                options.add_argument("--disable-dev-shm-usage")
+                options.add_argument("--disable-blink-features=AutomationControlled")
+                options.add_experimental_option("excludeSwitches", ["enable-automation"])
+                options.add_experimental_option("useAutomationExtension", False)
+
+                # Auto-download and install ChromeDriver
+                service = ChromeService(ChromeDriverManager().install())
+                self.driver = webdriver.Chrome(service=service, options=options)
+
+            elif browser_type.lower() == "firefox":
+                options = webdriver.FirefoxOptions()
+                if self.headless:
+                    options.add_argument("--headless")
+
+                # Auto-download and install GeckoDriver
+                service = FirefoxService(GeckoDriverManager().install())
+                self.driver = webdriver.Firefox(service=service, options=options)
+
+            else:
+                raise ValueError(f"Unsupported browser type: {browser_type}. Use 'auto', 'edge', 'chrome', or 'firefox'")
+
+            self.driver.maximize_window()
+            print(f"✓ {browser_type.capitalize()} browser started successfully")
+
+        except Exception as e:
+            print(f"Error starting {browser_type} browser: {e}")
+            print("Trying fallback browsers...")
+
+            # Try fallback browsers
+            fallback_order = ["edge", "chrome", "firefox"]
+            if browser_type in fallback_order:
+                fallback_order.remove(browser_type)
+
+            for fallback in fallback_order:
+                try:
+                    print(f"Attempting to start {fallback}...")
+                    self.start_browser(fallback)
+                    return
+                except:
+                    continue
+
+            raise RuntimeError("Could not start any browser. Please install Edge, Chrome, or Firefox.")
 
     def navigate_to_game(self, url: str):
         """Navigate to the game URL"""
